@@ -37,7 +37,7 @@ A comprehensive, modern web-based learning management platform built with React,
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/eduhub.git
+   git clone https://github.com/nikobuddy/eduhub.git
    cd eduhub
    ```
 
