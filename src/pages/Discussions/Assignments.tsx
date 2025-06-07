@@ -12,7 +12,7 @@ const Assignments: React.FC = () => {
             course: 'Advanced Mathematics',
             teacher: 'Dr. Sarah Johnson',
             description: 'Solve integration problems using substitution and integration by parts methods.',
-            dueDate: '2024-01-18',
+            dueDate: '2025-01-18',
             dueTime: '11:59 PM',
             maxScore: 100,
             submittedAt: null,
@@ -30,10 +30,10 @@ const Assignments: React.FC = () => {
             course: 'Computer Science Fundamentals',
             teacher: 'Prof. Mike Chen',
             description: 'Implement binary search tree operations including insertion, deletion, and traversal.',
-            dueDate: '2024-01-20',
+            dueDate: '2025-01-20',
             dueTime: '11:59 PM',
             maxScore: 150,
-            submittedAt: '2024-01-19 10:30 AM',
+            submittedAt: '2025-01-19 10:30 AM',
             score: 142,
             feedback: 'Excellent implementation! Minor optimization suggestions provided in comments.',
             status: 'graded',
@@ -48,10 +48,10 @@ const Assignments: React.FC = () => {
             course: 'Physics Laboratory',
             teacher: 'Dr. Emily Davis',
             description: 'Analyze experimental data from the wave interference lab and write a comprehensive report.',
-            dueDate: '2024-01-22',
+            dueDate: '2025-01-22',
             dueTime: '11:59 PM',
             maxScore: 80,
-            submittedAt: '2024-01-21 08:15 PM',
+            submittedAt: '2025-01-21 08:15 PM',
             score: null,
             feedback: null,
             status: 'submitted',
@@ -66,7 +66,7 @@ const Assignments: React.FC = () => {
             course: 'Statistics & Probability',
             teacher: 'Prof. Alex Wilson',
             description: 'Perform statistical analysis on the provided dataset and present findings.',
-            dueDate: '2024-01-25',
+            dueDate: '2025-01-25',
             dueTime: '11:59 PM',
             maxScore: 120,
             submittedAt: null,
@@ -84,10 +84,10 @@ const Assignments: React.FC = () => {
             course: 'Advanced Mathematics',
             teacher: 'Dr. Sarah Johnson',
             description: 'Complete practice problems covering all topics from chapters 1-8.',
-            dueDate: '2024-01-16',
+            dueDate: '2025-01-16',
             dueTime: '11:59 PM',
             maxScore: 50,
-            submittedAt: '2024-01-15 09:45 PM',
+            submittedAt: '2025-01-15 09:45 PM',
             score: 47,
             feedback: 'Good work overall. Review integration techniques for better accuracy.',
             status: 'graded',
@@ -244,8 +244,8 @@ const Assignments: React.FC = () => {
                         <button
                             onClick={() => setSelectedTab('pending')}
                             className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${selectedTab === 'pending'
-                                    ? 'border-blue-500 text-blue-600'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                                ? 'border-blue-500 text-blue-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700'
                                 }`}
                         >
                             Pending ({pendingCount})
@@ -253,8 +253,8 @@ const Assignments: React.FC = () => {
                         <button
                             onClick={() => setSelectedTab('submitted')}
                             className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${selectedTab === 'submitted'
-                                    ? 'border-blue-500 text-blue-600'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                                ? 'border-blue-500 text-blue-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700'
                                 }`}
                         >
                             Submitted ({submittedCount})
@@ -262,8 +262,8 @@ const Assignments: React.FC = () => {
                         <button
                             onClick={() => setSelectedTab('graded')}
                             className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${selectedTab === 'graded'
-                                    ? 'border-blue-500 text-blue-600'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                                ? 'border-blue-500 text-blue-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700'
                                 }`}
                         >
                             Graded ({gradedCount})

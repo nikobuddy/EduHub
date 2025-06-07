@@ -12,6 +12,7 @@ import Assignments from './pages/Discussions/Assignments';
 import Courses from './pages/Discussions/Courses';
 import Discussions from './pages/Discussions/Discussions';
 import Progress from './pages/Discussions/Progress';
+import VideoPlayerPage from './pages/Discussions/VideoPlayerPage';
 import Schedule from './pages/Schedule/Schedule';
 
 const DashboardRouter: React.FC = () => {
@@ -44,6 +45,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <DashboardRouter />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/video/:id"
+            element={
+              <ProtectedRoute allowedRoles={['student']}>
+                <Layout>
+                  <VideoPlayerPage />
                 </Layout>
               </ProtectedRoute>
             }

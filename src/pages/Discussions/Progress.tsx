@@ -75,7 +75,7 @@ const Progress: React.FC = () => {
             description: 'Attended all classes for 2 weeks straight',
             icon: Calendar,
             earned: true,
-            earnedDate: '2024-01-10',
+            earnedDate: '2025-01-10',
             color: 'blue'
         },
         {
@@ -84,7 +84,7 @@ const Progress: React.FC = () => {
             description: 'Completed 5 lessons in one day',
             icon: TrendingUp,
             earned: true,
-            earnedDate: '2024-01-08',
+            earnedDate: '2025-01-08',
             color: 'green'
         },
         {
@@ -93,7 +93,7 @@ const Progress: React.FC = () => {
             description: 'Scored 90+ on 3 consecutive assignments',
             icon: Trophy,
             earned: true,
-            earnedDate: '2024-01-05',
+            earnedDate: '2025-01-05',
             color: 'yellow'
         },
         {
@@ -127,6 +127,28 @@ const Progress: React.FC = () => {
         { day: 'Sat', hours: 2.3, assignments: 0 },
         { day: 'Sun', hours: 1.8, assignments: 1 }
     ];
+    const monthlyActivity = [
+        { day: 'Week 1', hours: 22, assignments: 5 },
+        { day: 'Week 2', hours: 19, assignments: 4 },
+        { day: 'Week 3', hours: 24, assignments: 6 },
+        { day: 'Week 4', hours: 21, assignments: 5 }
+    ];
+
+    const semesterActivity = [
+        { day: 'Jan', hours: 80, assignments: 18 },
+        { day: 'Feb', hours: 92, assignments: 21 },
+        { day: 'Mar', hours: 86, assignments: 17 },
+        { day: 'Apr', hours: 97, assignments: 23 },
+        { day: 'May', hours: 103, assignments: 25 }
+    ];
+
+    const getActivityData = () => {
+        if (selectedPeriod === 'week') return weeklyActivity;
+        if (selectedPeriod === 'month') return monthlyActivity;
+        if (selectedPeriod === 'semester') return semesterActivity;
+        return [];
+    };
+
 
     const getGradeColor = (grade: string) => {
         if (grade.startsWith('A')) return 'text-green-600 bg-green-100';
@@ -315,14 +337,16 @@ const Progress: React.FC = () => {
                     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4">Weekly Activity</h3>
                         <div className="space-y-3">
-                            {weeklyActivity.map((day) => (
+                            {getActivityData().map((day) => (
+
                                 <div key={day.day} className="flex items-center justify-between">
                                     <span className="text-sm font-medium text-gray-700 w-8">{day.day}</span>
                                     <div className="flex-1 mx-3">
                                         <div className="w-full bg-gray-200 rounded-full h-2">
                                             <div
                                                 className="bg-blue-600 h-2 rounded-full"
-                                                style={{ width: `${(day.hours / 6) * 100}%` }}
+                                                style={{ width: `${Math.min((day.hours / 24) * 100, 100)}%` }}
+
                                             ></div>
                                         </div>
                                     </div>
