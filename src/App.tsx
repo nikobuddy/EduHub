@@ -8,6 +8,11 @@ import Register from './pages/Auth/Register';
 import AdminDashboard from './pages/Dashboard/AdminDashboard';
 import StudentDashboard from './pages/Dashboard/StudentDashboard';
 import TeacherDashboard from './pages/Dashboard/TeacherDashboard';
+import Assignments from './pages/Discussions/Assignments';
+import Courses from './pages/Discussions/Courses';
+import Discussions from './pages/Discussions/Discussions';
+import Progress from './pages/Discussions/Progress';
+import Schedule from './pages/Schedule/Schedule';
 
 const DashboardRouter: React.FC = () => {
   const { user } = useAuth();
@@ -48,10 +53,7 @@ function App() {
             element={
               <ProtectedRoute>
                 <Layout>
-                  <div className="p-8 text-center">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Courses</h2>
-                    <p className="text-gray-600">Course management coming soon...</p>
-                  </div>
+                  <Courses />
                 </Layout>
               </ProtectedRoute>
             }
@@ -61,10 +63,17 @@ function App() {
             element={
               <ProtectedRoute>
                 <Layout>
-                  <div className="p-8 text-center">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Assignments</h2>
-                    <p className="text-gray-600">Assignment management coming soon...</p>
-                  </div>
+                  <Assignments />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/schedule"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Schedule />
                 </Layout>
               </ProtectedRoute>
             }
@@ -74,10 +83,17 @@ function App() {
             element={
               <ProtectedRoute>
                 <Layout>
-                  <div className="p-8 text-center">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Discussions</h2>
-                    <p className="text-gray-600">Discussion forums coming soon...</p>
-                  </div>
+                  <Discussions />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/progress"
+            element={
+              <ProtectedRoute allowedRoles={['student']}>
+                <Layout>
+                  <Progress />
                 </Layout>
               </ProtectedRoute>
             }
@@ -116,6 +132,45 @@ function App() {
                   <div className="p-8 text-center">
                     <h2 className="text-2xl font-bold text-gray-900 mb-4">Announcements</h2>
                     <p className="text-gray-600">Announcement system coming soon...</p>
+                  </div>
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/live-classes"
+            element={
+              <ProtectedRoute allowedRoles={['teacher']}>
+                <Layout>
+                  <div className="p-8 text-center">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Live Classes</h2>
+                    <p className="text-gray-600">Live class management coming soon...</p>
+                  </div>
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <Layout>
+                  <div className="p-8 text-center">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Reports</h2>
+                    <p className="text-gray-600">Reporting system coming soon...</p>
+                  </div>
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <Layout>
+                  <div className="p-8 text-center">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Settings</h2>
+                    <p className="text-gray-600">System settings coming soon...</p>
                   </div>
                 </Layout>
               </ProtectedRoute>
