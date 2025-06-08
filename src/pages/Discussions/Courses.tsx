@@ -248,9 +248,9 @@ const Courses: React.FC = () => {
                             <p className="text-sm text-gray-600 mb-4">Take quizzes and practice exams</p>
 
                             <a
-                                href="/discussions" // or external link
+                                href="/courses" // or external link
                                 className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                            >Start Practice
+                            >VStart Practice
                             </a>
                         </div>
                     </div>

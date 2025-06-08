@@ -1,3 +1,5 @@
+// StudentDashboard.tsx (Dynamic with Firebase)
+import { collection, getDocs } from "firebase/firestore";
 import {
   Award,
   BookOpen,
@@ -7,106 +9,74 @@ import {
   Play,
   TrendingUp,
 } from "lucide-react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-const StudentDashboard: React.FC = () => {
+import { db } from "../../firebase/firebase"; // Adjust the import path as necessary
 
+interface Course {
+  id: string;
+  title: string;
+  teacher: string;
+  progress: number;
+  nextClass: string;
+  thumbnail: string;
+}
+
+interface Assignment {
+  id: string;
+  title: string;
+  course: string;
+  dueDate: string;
+  status: string;
+}
+
+interface ClassItem {
+  id: string;
+  title: string;
+  time: string;
+  date: string;
+  room: string;
+}
+
+const StudentDashboard: React.FC = () => {
   const navigate = useNavigate();
 
-  const enrolledCourses = [
-    {
-      id: 1,
-      title: "Advanced Mathematics",
-      teacher: "Dr. Sarah Johnson",
-      progress: 75,
-      nextClass: "2025-01-15 10:00 AM",
-      thumbnail:
-        "https://images.pexels.com/photos/6238288/pexels-photo-6238288.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
-    },
-    {
-      id: 2,
-      title: "Computer Science Fundamentals",
-      teacher: "Prof. Mike Chen",
-      progress: 45,
-      nextClass: "2025-01-15 2:00 PM",
-      thumbnail:
-        "https://images.pexels.com/photos/577585/pexels-photo-577585.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
-    },
-    {
-      id: 3,
-      title: "Physics Laboratory",
-      teacher: "Dr. Emily Davis",
-      progress: 30,
-      nextClass: "2025-01-16 11:00 AM",
-      thumbnail:
-        "https://images.pexels.com/photos/2280571/pexels-photo-2280571.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
-    },
-  ];
+  const [enrolledCourses, setEnrolledCourses] = useState<Course[]>([]);
+  const [recentAssignments, setRecentAssignments] = useState<Assignment[]>([]);
+  const [upcomingClasses, setUpcomingClasses] = useState<ClassItem[]>([]);
 
-  const recentAssignments = [
-    {
-      id: 1,
-      title: "Calculus Problem Set 5",
-      course: "Advanced Mathematics",
-      dueDate: "2025-01-18",
-      status: "pending",
-    },
-    {
-      id: 2,
-      title: "Programming Assignment 3",
-      course: "Computer Science",
-      dueDate: "2025-01-20",
-      status: "submitted",
-    },
-    {
-      id: 3,
-      title: "Lab Report - Momentum",
-      course: "Physics Laboratory",
-      dueDate: "2025-01-22",
-      status: "pending",
-    },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      const coursesSnap = await getDocs(collection(db, "courses"));
+      const assignmentsSnap = await getDocs(collection(db, "assignments"));
+      const classesSnap = await getDocs(collection(db, "classes"));
 
-  const upcomingClasses = [
-    {
-      id: 1,
-      title: "Mathematics",
-      time: "10:00 AM",
-      date: "Today",
-      room: "Room 101",
-    },
-    {
-      id: 2,
-      title: "Computer Science",
-      time: "2:00 PM",
-      date: "Today",
-      room: "Lab 205",
-    },
-    {
-      id: 3,
-      title: "Physics",
-      time: "11:00 AM",
-      date: "Tomorrow",
-      room: "Room 301",
-    },
-  ];
+      setEnrolledCourses(
+        coursesSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Course))
+      );
+      setRecentAssignments(
+        assignmentsSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Assignment))
+      );
+      setUpcomingClasses(
+        classesSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as ClassItem))
+      );
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <div className="space-y-8 px-4 py-6 md:px-8 lg:px-16">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
         <h1 className="text-3xl font-bold text-gray-900">Student Dashboard</h1>
-        <p className="text-sm text-gray-500">
-          Welcome back! Here's your learning overview.
-        </p>
+        <p className="text-sm text-gray-500">Welcome back! Here's your learning overview.</p>
       </div>
 
-      {/* Stat Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
           {
             title: "Enrolled Courses",
-            value: 12,
+            value: enrolledCourses.length,
             icon: <BookOpen className="h-6 w-6 text-blue-600" />,
             bg: "bg-blue-100",
           },
@@ -142,9 +112,7 @@ const StudentDashboard: React.FC = () => {
         ))}
       </div>
 
-      {/* Courses and Upcoming Classes */}
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Courses */}
         <div className="lg:col-span-2 bg-white rounded-xl shadow border overflow-hidden">
           <div className="px-6 py-4 border-b">
             <h2 className="text-lg font-semibold text-gray-800">My Courses</h2>
@@ -161,9 +129,7 @@ const StudentDashboard: React.FC = () => {
                   className="w-16 h-16 rounded-md object-cover"
                 />
                 <div className="flex-1">
-                  <h3 className="text-sm font-semibold text-gray-900">
-                    {course.title}
-                  </h3>
+                  <h3 className="text-sm font-semibold text-gray-900">{course.title}</h3>
                   <p className="text-xs text-gray-500">{course.teacher}</p>
                   <div className="mt-2 flex items-center gap-2">
                     <div className="w-full h-2 bg-gray-200 rounded-full">
@@ -172,9 +138,7 @@ const StudentDashboard: React.FC = () => {
                         style={{ width: `${course.progress}%` }}
                       />
                     </div>
-                    <span className="text-xs text-gray-600">
-                      {course.progress}%
-                    </span>
+                    <span className="text-xs text-gray-600">{course.progress}%</span>
                   </div>
                 </div>
                 <button
@@ -188,12 +152,9 @@ const StudentDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Upcoming Classes */}
         <div className="bg-white rounded-xl shadow border overflow-hidden">
           <div className="px-6 py-4 border-b">
-            <h2 className="text-lg font-semibold text-gray-800">
-              Upcoming Classes
-            </h2>
+            <h2 className="text-lg font-semibold text-gray-800">Upcoming Classes</h2>
           </div>
           <div className="p-4 space-y-4">
             {upcomingClasses.map((item) => (
@@ -217,12 +178,9 @@ const StudentDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Recent Assignments Table */}
       <div className="bg-white rounded-xl shadow border overflow-hidden">
         <div className="px-6 py-4 border-b">
-          <h2 className="text-lg font-semibold text-gray-800">
-            Recent Assignments
-          </h2>
+          <h2 className="text-lg font-semibold text-gray-800">Recent Assignments</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">

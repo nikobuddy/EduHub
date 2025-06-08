@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
 import AdminDashboard from './pages/Dashboard/AdminDashboard';
+import AdminUpload from './pages/Dashboard/AdminUploads';
 import StudentDashboard from './pages/Dashboard/StudentDashboard';
 import TeacherDashboard from './pages/Dashboard/TeacherDashboard';
 import Assignments from './pages/Discussions/Assignments';
@@ -37,6 +38,8 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
+
+          <Route path="/admins" element={<AdminUpload />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route
