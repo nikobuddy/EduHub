@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
 import AdminDashboard from './pages/Dashboard/AdminDashboard';
+import AdminUpload from './pages/Dashboard/AdminUploads';
 import StudentDashboard from './pages/Dashboard/StudentDashboard';
 import TeacherDashboard from './pages/Dashboard/TeacherDashboard';
 import Assignments from './pages/Discussions/Assignments';
@@ -14,6 +15,7 @@ import Discussions from './pages/Discussions/Discussions';
 import Progress from './pages/Discussions/Progress';
 import VideoPlayerPage from './pages/Discussions/VideoPlayerPage';
 import Schedule from './pages/Schedule/Schedule';
+import AdminUploads from './pages/Dashboard/AdminUpload';
 
 const DashboardRouter: React.FC = () => {
   const { user } = useAuth();
@@ -37,6 +39,10 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
+
+          <Route path="/admins" element={<AdminUpload />} />
+          <Route path="/adminss" element={<AdminUploads />} />
+
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route
