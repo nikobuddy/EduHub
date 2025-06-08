@@ -15,6 +15,7 @@ import Discussions from './pages/Discussions/Discussions';
 import Progress from './pages/Discussions/Progress';
 import VideoPlayerPage from './pages/Discussions/VideoPlayerPage';
 import Schedule from './pages/Schedule/Schedule';
+import AdminUploads from './pages/Dashboard/AdminUpload';
 
 const DashboardRouter: React.FC = () => {
   const { user } = useAuth();
@@ -40,6 +41,8 @@ function App() {
         <Routes>
 
           <Route path="/admins" element={<AdminUpload />} />
+          <Route path="/adminss" element={<AdminUploads />} />
+
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route

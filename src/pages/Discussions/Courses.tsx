@@ -2,34 +2,54 @@ import {
     BookOpen, Clock, Download, FileText, Filter, Grid,
     List, Play, Search, Star, Users, Video
 } from 'lucide-react';
-import React, { useState } from 'react';
-import toast, { Toaster } from 'react-hot-toast'; // ✅ Import toas
+import React, { useEffect, useState } from 'react';
+import toast, { Toaster } from 'react-hot-toast';
 import { courses as initialCourses } from './courseData';
-
-
+import { enrollInCourse, getUserEnrolledCourses } from './firebaseService';
 
 const Courses: React.FC = () => {
     const getEmbedUrl = (url: string) => {
         const videoIdMatch = url.match(/(?:youtu\.be\/|v=)([^&]+)/);
         return videoIdMatch ? `https://www.youtube.com/embed/${videoIdMatch[1]}` : url;
     };
+
     const categories = ['all', 'computer-science', 'chemistry', 'design', 'data'];
 
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
     const [currentVideo, setCurrentVideo] = useState<any | null>(null);
+    const [courses, setCourses] = useState(initialCourses);
+    const [loading, setLoading] = useState(true);
 
-    const [courses, setCourses] = useState(initialCourses); // ✅ Make it dynamic
+    // Load enrolled course IDs from Firebase
+    useEffect(() => {
+        const fetchEnrolled = async () => {
+            try {
+                const enrolledIds = await getUserEnrolledCourses();
+                const updatedCourses = initialCourses.map(course =>
+                    enrolledIds.includes(course.id)
+                        ? { ...course, isEnrolled: true, progress: 20 }
+                        : { ...course, isEnrolled: false }
+                );
+                setCourses(updatedCourses);
+            } catch (error) {
+                console.error("Failed to fetch enrolled courses:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    const filteredCourses = courses.filter((course) => {
+        fetchEnrolled();
+    }, []);
+
+    const filteredCourses = courses.filter(course => {
         const matchesCategory = selectedCategory === 'all' || course.category === selectedCategory;
         const matchesSearch =
             course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
             course.description.toLowerCase().includes(searchTerm.toLowerCase());
         return matchesCategory && matchesSearch;
     });
-
 
     const enrolledCourses = filteredCourses.filter(course => course.isEnrolled);
     const availableCourses = filteredCourses.filter(course => !course.isEnrolled);
@@ -40,6 +60,21 @@ const Courses: React.FC = () => {
             case 'Intermediate': return 'bg-blue-100 text-blue-800';
             case 'Advanced': return 'bg-purple-100 text-purple-800';
             default: return 'bg-gray-100 text-gray-800';
+        }
+    };
+
+    const handleEnroll = async (course: any) => {
+        try {
+            await enrollInCourse(course.id);
+            setCourses(prev =>
+                prev.map(c =>
+                    c.id === course.id ? { ...c, isEnrolled: true, progress: 0 } : c
+                )
+            );
+            toast.success(`Successfully enrolled in "${course.title}"`);
+        } catch (error) {
+            toast.error("Failed to enroll. Please try again.");
+            console.error(error);
         }
     };
 
@@ -101,28 +136,23 @@ const Courses: React.FC = () => {
                         </>
                     ) : (
                         <button
-                            onClick={() => {
-                                setCourses(prev =>
-                                    prev.map(c =>
-                                        c.id === course.id ? { ...c, isEnrolled: true, progress: 0 } : c
-                                    )
-                                );
-                                toast.success(`Successfully enrolled in "${course.title}"`);
-                            }}
+                            onClick={() => handleEnroll(course)}
                             className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                         >
                             Enroll Now
                         </button>
-
                     )}
                 </div>
             </div>
         </div>
     );
 
+    if (loading) {
+        return <div className="text-center py-10 text-gray-600">Loading courses...</div>;
+    }
+
     return (
         <div className="space-y-6">
-
             <Toaster position="top-right" reverseOrder={false} />
 
             <div className="flex justify-between items-center">
@@ -187,10 +217,10 @@ const Courses: React.FC = () => {
                             allowFullScreen
                         ></iframe>
                     </div>
-
                     <p className="text-gray-600 text-sm">{currentVideo.description}</p>
                 </div>
             )}
+
             {enrolledCourses.length > 0 && (
                 <div>
                     <h2 className="text-xl font-semibold text-gray-900 mb-4">
@@ -223,35 +253,19 @@ const Courses: React.FC = () => {
                             <Video className="h-8 w-8 text-blue-600 mx-auto mb-3" />
                             <h3 className="font-semibold text-gray-900 mb-2">Video Lectures</h3>
                             <p className="text-sm text-gray-600 mb-4">Access recorded lectures and tutorials</p>
-                            <a
-                                href="/courses" // or external link
-                                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                            >
-                                Browse Videos
-                            </a>
-
+                            <a href="/discussions" className="text-blue-600 hover:text-blue-700 text-sm font-medium">Browse Videos</a>
                         </div>
                         <div className="text-center p-6 bg-green-50 rounded-lg">
                             <FileText className="h-8 w-8 text-green-600 mx-auto mb-3" />
                             <h3 className="font-semibold text-gray-900 mb-2">Study Materials</h3>
                             <p className="text-sm text-gray-600 mb-4">Download PDFs, notes, and references</p>
-
-                            <a
-                                href="/courses" // or external link
-                                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                            >View Materials
-                            </a>
+                            <a href="/schedule" className="text-blue-600 hover:text-blue-700 text-sm font-medium">View Materials</a>
                         </div>
                         <div className="text-center p-6 bg-purple-50 rounded-lg">
                             <BookOpen className="h-8 w-8 text-purple-600 mx-auto mb-3" />
                             <h3 className="font-semibold text-gray-900 mb-2">Practice Tests</h3>
                             <p className="text-sm text-gray-600 mb-4">Take quizzes and practice exams</p>
-
-                            <a
-                                href="/courses" // or external link
-                                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                            >VStart Practice
-                            </a>
+                            <a href="/assignments" className="text-blue-600 hover:text-blue-700 text-sm font-medium">Start Practice</a>
                         </div>
                     </div>
                 </div>
