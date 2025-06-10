@@ -17,7 +17,9 @@ export const courses = [
         isEnrolled: true,
         nextLesson: 'Integration by Parts',
         lastAccessed: '2 hours ago',
-        videoUrl: 'https://youtu.be/OfBqtyVvzaA'
+        videoUrl: 'https://youtu.be/OfBqtyVvzaA',
+        hoursStudied: 32,
+        completed: false
     },
     {
         id: 2,
@@ -36,7 +38,9 @@ export const courses = [
         isEnrolled: true,
         nextLesson: 'Binary Search Trees',
         lastAccessed: '1 day ago',
-        videoUrl: 'https://youtu.be/OfBqtyVvzaA'
+        videoUrl: 'https://youtu.be/OfBqtyVvzaA',
+        hoursStudied: 28,
+        completed: false
     },
     {
         id: 3,
@@ -55,7 +59,9 @@ export const courses = [
         isEnrolled: true,
         nextLesson: 'Wave Interference',
         lastAccessed: '3 days ago',
-        videoUrl: 'https://youtu.be/OfBqtyVvzaA'
+        videoUrl: 'https://youtu.be/OfBqtyVvzaA',
+        hoursStudied: 18,
+        completed: false
     },
     {
         id: 4,
@@ -74,7 +80,9 @@ export const courses = [
         isEnrolled: true,
         nextLesson: 'Normal Distribution',
         lastAccessed: '5 days ago',
-        videoUrl: 'https://youtu.be/OfBqtyVvzaA'
+        videoUrl: 'https://youtu.be/OfBqtyVvzaA',
+        hoursStudied: 12,
+        completed: false
     },
     {
         id: 5,
@@ -93,7 +101,9 @@ export const courses = [
         isEnrolled: false,
         nextLesson: 'Introduction to Organic Compounds',
         lastAccessed: null,
-        videoUrl: 'https://youtu.be/OfBqtyVvzaA'
+        videoUrl: 'https://youtu.be/OfBqtyVvzaA',
+        hoursStudied: 0,
+        completed: false
     },
     {
         id: 6,
@@ -112,6 +122,8 @@ export const courses = [
         isEnrolled: false,
         nextLesson: 'HTML Basics',
         lastAccessed: null,
-        videoUrl: 'https://youtu.be/OfBqtyVvzaA'
+        videoUrl: 'https://youtu.be/OfBqtyVvzaA',
+        hoursStudied: 0,
+        completed: false
     }
 ];

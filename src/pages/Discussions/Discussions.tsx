@@ -1,21 +1,40 @@
 import { BookOpen, Clock, Filter, Pin, Plus, Reply, Search, ThumbsUp, User } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { addDoc, collection, getDocs, orderBy, query } from 'firebase/firestore';
+
+import NewDiscussionForm from '../../components/NewDiscussionForm';
+import { db } from '../../firebase/firebase';
+
+interface Discussion {
+    id: string;
+    title: string;
+    content: string;
+    author: string;
+    authorRole: string;
+    course: string;
+    category: string;
+    replies: number;
+    likes: number;
+    isPinned: boolean;
+    isAnswered: boolean;
+    createdAt: string;
+    lastActivity: string;
+    tags: string[];
+}
+
+type CategoryId = 'all' | 'mathematics' | 'computer-science' | 'physics' | 'general';
 
 const Discussions: React.FC = () => {
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [dynamicDiscussions, setDynamicDiscussions] = useState<Discussion[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    const categories = [
-        { id: 'all', name: 'All Discussions', count: 156 },
-        { id: 'mathematics', name: 'Mathematics', count: 45 },
-        { id: 'computer-science', name: 'Computer Science', count: 38 },
-        { id: 'physics', name: 'Physics', count: 32 },
-        { id: 'general', name: 'General', count: 41 }
-    ];
-
-    const discussions = [
+    // Static discussions data
+    const staticDiscussions: Discussion[] = [
         {
-            id: 1,
+            id: '1',
             title: 'How to solve complex integration problems?',
             content: 'I\'m struggling with integration by parts. Can someone explain the step-by-step process with examples?',
             author: 'Alice Johnson',
@@ -31,7 +50,7 @@ const Discussions: React.FC = () => {
             tags: ['calculus', 'integration', 'help-needed']
         },
         {
-            id: 2,
+            id: '2',
             title: 'Best practices for React component optimization',
             content: 'What are the most effective ways to optimize React components for better performance? Looking for practical tips.',
             author: 'Prof. Mike Chen',
@@ -47,7 +66,7 @@ const Discussions: React.FC = () => {
             tags: ['react', 'optimization', 'performance']
         },
         {
-            id: 3,
+            id: '3',
             title: 'Understanding quantum mechanics principles',
             content: 'Can someone help explain the wave-particle duality concept? I find it confusing how light can behave as both.',
             author: 'Bob Smith',
@@ -63,7 +82,7 @@ const Discussions: React.FC = () => {
             tags: ['quantum-mechanics', 'physics', 'theory']
         },
         {
-            id: 4,
+            id: '4',
             title: 'Study group for upcoming midterms',
             content: 'Looking to form a study group for the upcoming midterm exams. Anyone interested in joining?',
             author: 'Carol Davis',
@@ -79,7 +98,7 @@ const Discussions: React.FC = () => {
             tags: ['study-group', 'midterms', 'collaboration']
         },
         {
-            id: 5,
+            id: '5',
             title: 'Assignment submission guidelines clarification',
             content: 'Could someone clarify the format requirements for the upcoming project submission? The rubric mentions specific formatting but I want to make sure I understand correctly.',
             author: 'David Wilson',
@@ -96,12 +115,85 @@ const Discussions: React.FC = () => {
         }
     ];
 
+    // Calculate category counts dynamically
+    const calculateCategoryCounts = (discussions: Discussion[]) => {
+        const counts: Record<CategoryId, number> = {
+            'all': discussions.length,
+            'mathematics': 0,
+            'computer-science': 0,
+            'physics': 0,
+            'general': 0
+        };
+
+        discussions.forEach(discussion => {
+            if (discussion.category in counts) {
+                counts[discussion.category as CategoryId]++;
+            }
+        });
+
+        return counts;
+    };
+
+    const categories = [
+        { id: 'all' as CategoryId, name: 'All Discussions' },
+        { id: 'mathematics' as CategoryId, name: 'Mathematics' },
+        { id: 'computer-science' as CategoryId, name: 'Computer Science' },
+        { id: 'physics' as CategoryId, name: 'Physics' },
+        { id: 'general' as CategoryId, name: 'General' }
+    ];
+
+    useEffect(() => {
+        const fetchDiscussions = async () => {
+            try {
+                const discussionsRef = collection(db, 'discussions');
+                const q = query(discussionsRef, orderBy('createdAt', 'desc'));
+                const querySnapshot = await getDocs(q);
+                
+                const fetchedDiscussions = querySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    isPinned: true // Ensure dynamic discussions are pinned
+                })) as Discussion[];
+
+                setDynamicDiscussions(fetchedDiscussions);
+            } catch (error) {
+                console.error('Error fetching discussions:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDiscussions();
+    }, []);
+
+    const handleNewDiscussion = async (discussionData: Omit<Discussion, 'id'>) => {
+        try {
+            const discussionsRef = collection(db, 'discussions');
+            const docRef = await addDoc(discussionsRef, {
+                ...discussionData,
+                isPinned: true // Ensure new discussions are pinned
+            });
+            
+            setDynamicDiscussions(prev => [{
+                ...discussionData,
+                id: docRef.id,
+                isPinned: true
+            }, ...prev]);
+        } catch (error) {
+            console.error('Error adding discussion:', error);
+        }
+    };
+
     const popularTags = [
         'calculus', 'programming', 'physics', 'study-tips', 'assignments',
         'react', 'mathematics', 'quantum-mechanics', 'help-needed', 'collaboration'
     ];
 
-    const filteredDiscussions = discussions.filter(discussion => {
+    // Combine static and dynamic discussions, ensuring dynamic ones are at the top
+    const allDiscussions = [...dynamicDiscussions, ...staticDiscussions];
+    const categoryCounts = calculateCategoryCounts(allDiscussions);
+
+    const filteredDiscussions = allDiscussions.filter(discussion => {
         const matchesCategory = selectedCategory === 'all' || discussion.category === selectedCategory;
         const matchesSearch = discussion.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
             discussion.content.toLowerCase().includes(searchTerm.toLowerCase());
@@ -120,7 +212,10 @@ const Discussions: React.FC = () => {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold text-gray-900">Discussions</h1>
-                <button className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                <button 
+                    onClick={() => setIsFormOpen(true)}
+                    className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
                     <Plus className="h-4 w-4" />
                     <span>New Discussion</span>
                 </button>
@@ -160,73 +255,80 @@ const Discussions: React.FC = () => {
 
                     {/* Discussion List */}
                     <div className="space-y-4">
-                        {filteredDiscussions.map((discussion) => (
-                            <div key={discussion.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
-                                <div className="flex items-start justify-between mb-4">
-                                    <div className="flex items-center space-x-3">
-                                        {discussion.isPinned && (
-                                            <Pin className="h-4 w-4 text-blue-600" />
-                                        )}
-                                        <h3 className="text-lg font-semibold text-gray-900 hover:text-blue-600 cursor-pointer">
-                                            {discussion.title}
-                                        </h3>
-                                        {discussion.isAnswered && (
-                                            <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                                                Answered
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="flex items-center space-x-2 text-sm text-gray-500">
-                                        <Clock className="h-3 w-3" />
-                                        <span>{discussion.createdAt}</span>
-                                    </div>
-                                </div>
-
-                                <p className="text-gray-600 mb-4 line-clamp-2">{discussion.content}</p>
-
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center space-x-4">
-                                        <div className="flex items-center space-x-2">
-                                            <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center">
-                                                <User className="h-3 w-3 text-gray-600" />
-                                            </div>
-                                            <span className="text-sm text-gray-700">{discussion.author}</span>
-                                            <span className={`text-xs px-2 py-1 rounded-full ${getRoleColor(discussion.authorRole)}`}>
-                                                {discussion.authorRole}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center space-x-1 text-sm text-gray-500">
-                                            <BookOpen className="h-3 w-3" />
-                                            <span>{discussion.course}</span>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center space-x-4">
-                                        <div className="flex items-center space-x-4 text-sm text-gray-500">
-                                            <div className="flex items-center space-x-1">
-                                                <Reply className="h-3 w-3" />
-                                                <span>{discussion.replies}</span>
-                                            </div>
-                                            <div className="flex items-center space-x-1">
-                                                <ThumbsUp className="h-3 w-3" />
-                                                <span>{discussion.likes}</span>
-                                            </div>
-                                        </div>
-                                        <button className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
-                                            View
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="mt-4 flex flex-wrap gap-2">
-                                    {discussion.tags.map((tag) => (
-                                        <span key={tag} className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full">
-                                            #{tag}
-                                        </span>
-                                    ))}
-                                </div>
+                        {loading ? (
+                            <div className="text-center py-8">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                                <p className="mt-2 text-gray-600">Loading discussions...</p>
                             </div>
-                        ))}
+                        ) : (
+                            filteredDiscussions.map((discussion) => (
+                                <div key={discussion.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+                                    <div className="flex items-start justify-between mb-4">
+                                        <div className="flex items-center space-x-3">
+                                            {discussion.isPinned && (
+                                                <Pin className="h-4 w-4 text-blue-600" />
+                                            )}
+                                            <h3 className="text-lg font-semibold text-gray-900 hover:text-blue-600 cursor-pointer">
+                                                {discussion.title}
+                                            </h3>
+                                            {discussion.isAnswered && (
+                                                <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                                                    Answered
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center space-x-2 text-sm text-gray-500">
+                                            <Clock className="h-3 w-3" />
+                                            <span>{discussion.createdAt}</span>
+                                        </div>
+                                    </div>
+
+                                    <p className="text-gray-600 mb-4 line-clamp-2">{discussion.content}</p>
+
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center space-x-4">
+                                            <div className="flex items-center space-x-2">
+                                                <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center">
+                                                    <User className="h-3 w-3 text-gray-600" />
+                                                </div>
+                                                <span className="text-sm text-gray-700">{discussion.author}</span>
+                                                <span className={`text-xs px-2 py-1 rounded-full ${getRoleColor(discussion.authorRole)}`}>
+                                                    {discussion.authorRole}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center space-x-1 text-sm text-gray-500">
+                                                <BookOpen className="h-3 w-3" />
+                                                <span>{discussion.course}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center space-x-4">
+                                            <div className="flex items-center space-x-4 text-sm text-gray-500">
+                                                <div className="flex items-center space-x-1">
+                                                    <Reply className="h-3 w-3" />
+                                                    <span>{discussion.replies}</span>
+                                                </div>
+                                                <div className="flex items-center space-x-1">
+                                                    <ThumbsUp className="h-3 w-3" />
+                                                    <span>{discussion.likes}</span>
+                                                </div>
+                                            </div>
+                                            <button className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                                                View
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-4 flex flex-wrap gap-2">
+                                        {discussion.tags.map((tag) => (
+                                            <span key={tag} className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full">
+                                                #{tag}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))
+                        )}
                     </div>
                 </div>
 
@@ -240,14 +342,15 @@ const Discussions: React.FC = () => {
                                 <button
                                     key={category.id}
                                     onClick={() => setSelectedCategory(category.id)}
-                                    className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors ${selectedCategory === category.id
+                                    className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors ${
+                                        selectedCategory === category.id
                                             ? 'bg-blue-100 text-blue-700'
                                             : 'hover:bg-gray-50 text-gray-700'
-                                        }`}
+                                    }`}
                                 >
                                     <span className="font-medium">{category.name}</span>
                                     <span className="text-sm bg-gray-200 text-gray-600 px-2 py-1 rounded-full">
-                                        {category.count}
+                                        {categoryCounts[category.id]}
                                     </span>
                                 </button>
                             ))}
@@ -312,6 +415,12 @@ const Discussions: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            <NewDiscussionForm
+                isOpen={isFormOpen}
+                onClose={() => setIsFormOpen(false)}
+                onSubmit={handleNewDiscussion}
+            />
         </div>
     );
 };
