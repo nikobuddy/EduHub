@@ -1,11 +1,44 @@
 import {
-    BookOpen, Clock, Download, FileText, Filter, Grid,
-    List, Play, Search, Star, Users, Video
+    BookOpen,
+    Clock,
+    Download,
+    FileText,
+    Filter,
+    Grid,
+    List,
+    Play,
+    Search,
+    Star,
+    Users,
+    Video
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import { enrollInCourse, getUserCourseProgress, getUserEnrolledCourses, updateUserCourseProgress } from './firebaseService';
 import toast, { Toaster } from 'react-hot-toast';
+
 import { courses as initialCourses } from './courseData';
-import { enrollInCourse, getUserEnrolledCourses } from './firebaseService';
+
+interface Course {
+    id: number;
+    title: string;
+    description: string;
+    teacher: string;
+    category: string;
+    level: string;
+    duration: string;
+    totalLessons: number;
+    completedLessons: number;
+    students: number;
+    rating: number;
+    progress: number;
+    thumbnail: string;
+    isEnrolled: boolean;
+    nextLesson: string;
+    lastAccessed: string | null;
+    videoUrl: string;
+    hoursStudied: number;
+    completed: boolean;
+}
 
 const Courses: React.FC = () => {
     const getEmbedUrl = (url: string) => {
@@ -18,19 +51,68 @@ const Courses: React.FC = () => {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
-    const [currentVideo, setCurrentVideo] = useState<any | null>(null);
-    const [courses, setCourses] = useState(initialCourses);
+    const [currentVideo, setCurrentVideo] = useState<Course | null>(null);
+    const [courses, setCourses] = useState<Course[]>(initialCourses);
     const [loading, setLoading] = useState(true);
 
-    // Load enrolled course IDs from Firebase
+    const updateCourseProgress = async (courseId: number) => {
+        try {
+            const course = courses.find(c => c.id === courseId);
+            if (!course) return;
+
+            const newProgress = Math.min(course.progress + 5, 100);
+            const newCompletedLessons = course.completedLessons + 1;
+            const newHoursStudied = course.hoursStudied + 1;
+            
+            // Update user's course progress in Firebase
+            const isCompleted = await updateUserCourseProgress(
+                courseId,
+                newProgress,
+                newCompletedLessons,
+                newHoursStudied
+            );
+
+            // Update local state
+            const updatedCourses = courses.map(course => {
+                if (course.id === courseId) {
+                    return {
+                        ...course,
+                        progress: newProgress,
+                        completedLessons: newCompletedLessons,
+                        hoursStudied: newHoursStudied,
+                        completed: isCompleted
+                    };
+                }
+                return course;
+            });
+            setCourses(updatedCourses);
+        } catch (error) {
+            console.error("Error updating course progress:", error);
+            toast.error("Failed to update progress");
+        }
+    };
+
+    // Load enrolled course IDs and their progress from Firebase
     useEffect(() => {
         const fetchEnrolled = async () => {
             try {
                 const enrolledIds = await getUserEnrolledCourses();
-                const updatedCourses = initialCourses.map(course =>
-                    enrolledIds.includes(course.id)
-                        ? { ...course, isEnrolled: true, progress: 20 }
-                        : { ...course, isEnrolled: false }
+                const updatedCourses = await Promise.all(
+                    initialCourses.map(async course => {
+                        if (enrolledIds.includes(course.id)) {
+                            const userProgress = await getUserCourseProgress(course.id);
+                            return {
+                                ...course,
+                                isEnrolled: true,
+                                progress: userProgress?.progress || 0,
+                                completedLessons: userProgress?.completedLessons || 0,
+                                hoursStudied: userProgress?.hoursStudied || 0,
+                                completed: userProgress?.completed || false,
+                                lastAccessed: userProgress?.lastAccessed || null
+                            };
+                        }
+                        return { ...course, isEnrolled: false };
+                    })
                 );
                 setCourses(updatedCourses);
             } catch (error) {
@@ -63,12 +145,12 @@ const Courses: React.FC = () => {
         }
     };
 
-    const handleEnroll = async (course: any) => {
+    const handleEnroll = async (course: Course) => {
         try {
             await enrollInCourse(course.id);
             setCourses(prev =>
                 prev.map(c =>
-                    c.id === course.id ? { ...c, isEnrolled: true, progress: 0 } : c
+                    c.id === course.id ? { ...c, isEnrolled: true, progress: 0, completedLessons: 0 } : c
                 )
             );
             toast.success(`Successfully enrolled in "${course.title}"`);
@@ -78,7 +160,7 @@ const Courses: React.FC = () => {
         }
     };
 
-    const CourseCard = ({ course }: { course: any }) => (
+    const CourseCard: React.FC<{ course: Course }> = ({ course }) => (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
             <div className="relative">
                 <img src={course.thumbnail} alt={course.title} className="w-full h-48 object-cover" />
@@ -215,6 +297,7 @@ const Courses: React.FC = () => {
                             frameBorder="0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
+                            onLoad={() => updateCourseProgress(currentVideo.id)}
                         ></iframe>
                     </div>
                     <p className="text-gray-600 text-sm">{currentVideo.description}</p>
